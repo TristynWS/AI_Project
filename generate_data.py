@@ -5,11 +5,11 @@ import numpy as np
 np.random.seed(0)
 
 # Generate synthetic data
-dates = pd.date_range(start="2023-01-01", periods=100, freq='D')
-amounts = np.random.randint(100, 5000, size=100)
-vendors = np.random.choice(['VendorA', 'VendorB', 'VendorC', 'VendorD'], 100)
-statuses = np.random.choice(['Processed', 'Pending', 'Failed'], 100)
-duplicates = np.random.choice([0, 1], 100, p=[0.9, 0.1])  # 10% chance of being a duplicate
+dates = pd.date_range(start="2023-01-01", periods=200, freq='D')  # Increased the number of days
+amounts = np.random.randint(100, 5000, size=200)  # More entries
+vendors = np.random.choice(['VendorA', 'VendorB', 'VendorC', 'VendorD'], 200)
+statuses = np.random.choice(['Processed', 'Pending', 'Failed'], 200)
+duplicates = np.random.choice([0, 1], 200, p=[0.7, 0.3])  # Increased chance of duplicates
 
 # Create DataFrame
 df = pd.DataFrame({
@@ -20,14 +20,16 @@ df = pd.DataFrame({
     'Duplicate': duplicates
 })
 
-# Introduce anomalies: duplicate entries
-for _ in range(10):
-    idx = np.random.choice(df.index)
-    df = df.append(df.loc[idx], ignore_index=True)
+# Introduce more anomalies: add duplicate entries with slight variations
+for _ in range(30):  # More duplicates
+    idx = np.random.choice(df.index[df['Duplicate'] == 1])  # Choose only from existing duplicates
+    dup_entry = df.loc[idx].copy()
+    dup_entry['Amount'] = dup_entry['Amount'] * np.random.normal(1.0, 0.05)  # Small variation in amount
+    df = pd.concat([df, df.loc[[idx]]], ignore_index=True)
 
 # Shuffle dataframe
 df = df.sample(frac=1).reset_index(drop=True)
 
 # Save to CSV
-df.to_csv('invoice_data.csv', index=False)
-print("Data generated and saved to invoice_data.csv")
+df.to_csv('augmented_invoice_data.csv', index=False)
+print("Augmented data generated and saved to augmented_invoice_data.csv")
