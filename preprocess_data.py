@@ -3,22 +3,25 @@ import pandas as pd
 # Load the dataset
 df = pd.read_csv('augmented_invoice_data.csv')
 
-# Check the first few rows of the dataframe
-print("Initial Data:")
+# Ensure the 'Date' column is in datetime format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Assuming 'Status' is the problematic feature
+df = pd.get_dummies(df, columns=['Status'])
+
+# Extract day of the week and month from the 'Date' column
+df['Day_of_Week'] = df['Date'].dt.dayofweek  # Monday=0, Sunday=6
+df['Month'] = df['Date'].dt.month  # January=1, December=12
+
+# Check the first few rows to confirm the new columns are correct
+print("Data with new features:")
 print(df.head())
 
-# Handle duplicates: mark them if not already marked
-if 'Duplicate' not in df.columns:
-    df['Duplicate'] = df.duplicated(subset=['Date', 'Amount', 'Vendor'], keep=False).astype(int)
-
-# Replace status strings with numerical codes
-status_mapping = {'Processed': 1, 'Pending': 0, 'Failed': -1}
-df['Status'] = df['Status'].map(status_mapping)
-
-# Normalize the 'Amount' column
+# Continue with any other preprocessing steps you need
+# Example: Normalize the 'Amount' column
 df['Amount'] = (df['Amount'] - df['Amount'].mean()) / df['Amount'].std()
 
-# Save the preprocessed data
-df.to_csv('preprocessed_augmented_invoice_data.csv', index=False)
+# Save the preprocessed data back to a CSV file
+df.to_csv('preprocessed_data.csv', index=False)
 
 print("Preprocessing done. Data saved to preprocessed_data.csv")
